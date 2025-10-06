@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI YouTube Thumbnail Analyzer</title>
+    <title>AI YouTube Thumbnail Analyzer (Pro Version)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React Libraries -->
@@ -17,12 +17,20 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* A custom style to create the grid background effect since Tailwind JIT classes don't work via CDN */
+        /* A custom style to create the grid background effect */
         .bg-grid-custom {
             background-image:
                 linear-gradient(rgba(100, 116, 139, 0.1) 1px, transparent 1px),
                 linear-gradient(to right, rgba(100, 116, 139, 0.1) 1px, transparent 1px);
             background-size: 2rem 2rem;
+        }
+        /* Simple fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
         }
     </style>
 </head>
@@ -32,7 +40,7 @@
     <script type="text/babel">
         const { useState, useCallback, useMemo } = React;
 
-        // --- BIỂU TƯỢỢNG (ICONS) ---
+        // --- ICONS ---
         const UploadCloudIcon = (props) => (
           <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m16 16-4-4-4 4" />
@@ -56,8 +64,13 @@
                 <path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" /><line x1="12" x2="12" y1="9" y2="13" /><line x1="12" x2="12.01" y1="17" y2="17" />
             </svg>
         );
+        
+        const ZapIcon = (props) => (
+          <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        );
 
-        // --- COMPONENT CON ---
+
+        // --- CHILD COMPONENTS ---
         const ScoreBar = ({ label, score }) => {
             const scoreColor = useMemo(() => {
                 if (score >= 8) return 'bg-cyan-400';
@@ -79,7 +92,7 @@
         };
 
         const AnalysisResults = ({ analysis }) => (
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm">
+            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm animate-fade-in">
                 <h3 className="text-2xl font-bold text-white mb-6">Kết quả Phân tích Thumbnail</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
@@ -125,35 +138,55 @@
         );
 
         const Suggestions = ({ suggestions }) => (
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm space-y-6">
+            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm space-y-6 animate-fade-in">
+                
+                <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-lg">
+                     <h4 className="text-lg font-semibold text-cyan-400 mb-2">Phân tích Chiến lược</h4>
+                     <p className="text-sm text-slate-400 mb-1"><span className="font-semibold text-slate-300">Chủ đề chính:</span> {suggestions.theme}</p>
+                     <p className="text-sm text-slate-400 mb-1"><span className="font-semibold text-slate-300">Vòng lặp Ham muốn:</span> {suggestions.strategicAnalysis.desireLoop}</p>
+                     <p className="text-sm text-slate-400"><span className="font-semibold text-slate-300">Khoảng trống Tò mò:</span> {suggestions.strategicAnalysis.curiosityGap}</p>
+                </div>
+
                 <div>
-                    <h4 className="text-lg font-semibold text-cyan-400 mb-2 flex items-center">
-                        <WandSparklesIcon className="w-5 h-5 mr-2" /> A. Gợi ý Tiêu đề (YouTube SEO)
-                    </h4>
-                    <ul className="list-disc list-inside space-y-2 text-slate-300 pl-2">
-                        {suggestions.titles.map((title, i) => <li key={i}>{title}</li>)}
+                    <h4 className="text-lg font-semibold text-cyan-400 mb-2">A. Gợi ý Tiêu đề (YouTube SEO)</h4>
+                    <ul className="list-disc list-inside space-y-2 text-slate-300 pl-2 text-sm">
+                        {suggestions.titleSuggestions.map((title, i) => <li key={i}>{title}</li>)}
                     </ul>
                 </div>
+
                 <div>
-                    <h4 className="text-lg font-semibold text-cyan-400 mb-2">B. Gợi ý Text trên Thumbnail</h4>
-                    <div className="flex flex-wrap gap-2">
-                        {suggestions.thumbnailTexts.map((text, i) => (
-                            <span key={i} className="bg-cyan-400/10 text-cyan-300 text-sm font-medium px-3 py-1 rounded-full">{text}</span>
-                        ))}
+                    <h4 className="text-lg font-semibold text-cyan-400 mb-3">B. Ý tưởng Thumbnail</h4>
+                     <div className="space-y-3 text-sm">
+                        <p><strong className="text-slate-300">"Súng gây choáng" chính:</strong> <span className="text-slate-400">{suggestions.thumbnailConcept.primaryStunGun}</span></p>
+                        <p><strong className="text-slate-300">Bố cục đề xuất:</strong> <span className="text-slate-400">{suggestions.thumbnailConcept.composition}</span></p>
+                        <p><strong className="text-slate-300">Quy tắc 3 Yếu tố:</strong> <span className="text-slate-400">{suggestions.thumbnailConcept.maxElements}</span></p>
+                        <div>
+                            <strong className="text-slate-300 block mb-2">Gợi ý Text trên ảnh:</strong>
+                            <div className="flex flex-wrap gap-2">
+                                {suggestions.thumbnailConcept.textSuggestions.map((text, i) => (
+                                    <span key={i} className="bg-cyan-400/10 text-cyan-300 text-xs font-medium px-3 py-1 rounded-full">{text}</span>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
                 <div>
-                    <h4 className="text-lg font-semibold text-cyan-400 mb-2">C. Gợi ý Tone màu & Phong cách</h4>
-                    <p className="text-slate-300">{suggestions.style}</p>
+                    <h4 className="text-lg font-semibold text-cyan-400 mb-3">C. Thực thi Thiết kế</h4>
+                     <div className="space-y-3 text-sm">
+                        <p><strong className="text-slate-300">Bảng màu:</strong> <span className="text-slate-400">{suggestions.designExecution.colorPalette}</span></p>
+                        <p><strong className="text-slate-300">Cảm xúc & Ánh sáng:</strong> <span className="text-slate-400">{suggestions.designExecution.emotionAndLighting}</span></p>
+                        <p><strong className="text-slate-300">Mẹo nâng cao:</strong> <span className="text-slate-400">{suggestions.designExecution.notes}</span></p>
+                    </div>
                 </div>
+
                 <div>
                     <h4 className="text-lg font-semibold text-cyan-400 mb-2">D. Gợi ý Prompt tạo ảnh AI</h4>
                     <div className="bg-slate-900 p-4 rounded-lg border border-slate-700">
-                        <p className="text-slate-300 font-mono text-sm">{suggestions.prompt}</p>
+                        <p className="text-slate-300 font-mono text-sm">{suggestions.aiPrompt}</p>
                         <button 
                             onClick={() => {
-                                navigator.clipboard.writeText(suggestions.prompt);
-                                // Optional: add a small feedback message
+                                navigator.clipboard.writeText(suggestions.aiPrompt);
                                 alert('Đã sao chép prompt!');
                             }}
                             className="mt-3 text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1 px-3 rounded-md transition-colors"
@@ -165,7 +198,7 @@
             </div>
         );
 
-        // --- COMPONENT CHÍNH (APP) ---
+        // --- MAIN APP COMPONENT ---
         function App() {
             const [image, setImage] = useState(null);
             const [title, setTitle] = useState('');
@@ -175,7 +208,106 @@
             const [suggestions, setSuggestions] = useState(null);
             const [activeTab, setActiveTab] = useState('analysis');
             const [error, setError] = useState('');
-            
+
+            // =================================================================
+            // NEW DYNAMIC LOGIC BASED ON USER'S PLAYBOOK
+            // =================================================================
+            const detectTheme = (videoTitle) => {
+                const lowerCaseTitle = videoTitle.toLowerCase();
+                if (['how to', 'guide', 'ai', 'learn', 'hacks', 'tutorial', 'review'].some(kw => lowerCaseTitle.includes(kw))) return 'education';
+                if (['warning', 'stop', 'mistake', 'problem', 'why your', 'danger', 'fix'].some(kw => lowerCaseTitle.includes(kw))) return 'warning';
+                if (['motivation', 'secret', 'success', 'millionaire', 'unlock', 'powerful', 'change your life'].some(kw => lowerCaseTitle.includes(kw))) return 'motivation';
+                if (['i tried', 'challenge', 'vlog', 'my trip', 'day in the life', 'experiment'].some(kw => lowerCaseTitle.includes(kw))) return 'entertainment';
+                return 'general';
+            };
+
+            const generateSuggestions = (theme) => {
+                const suggestionSets = {
+                    education: {
+                        theme: "Giáo dục / Hướng dẫn",
+                        strategicAnalysis: {
+                            desireLoop: "Người xem muốn có được một kỹ năng hoặc kiến thức mới để giải quyết một vấn đề cụ thể (ví dụ: phát triển nhanh hơn, tiết kiệm thời gian).",
+                            curiosityGap: "Phương pháp hoặc bí quyết được chia sẻ trong video này là gì mà tôi chưa biết?"
+                        },
+                        titleSuggestions: ["Cách [Chuyên Gia] Dùng [Công Cụ] Để Đạt Kết Quả X10", "Hướng Dẫn [Chủ Đề] Toàn Tập Cho Người Mới (2025)", "5 [Chủ Đề] Hacks Giúp Tiết Kiệm 20 Giờ/Tuần"],
+                        thumbnailConcept: {
+                            primaryStunGun: "Đồ họa hấp dẫn (Compelling Graphic) hoặc Bố cục A/B (So sánh Trước/Sau).",
+                            composition: "A/B (Trước/Sau) để thể hiện sự chuyển đổi, hoặc Bất đối xứng với đồ họa minh họa quy trình.",
+                            maxElements: "3 (Khuôn mặt/Biểu tượng + Text chính + Đồ họa minh họa).",
+                            textSuggestions: ["AI HACKS 2025", "MASTERCLASS", "THE ULTIMATE GUIDE", "PRO LEVEL"],
+                        },
+                        designExecution: {
+                            colorPalette: "Nền sáng (trắng, xanh lam nhạt) với text màu tối (đen, xanh đậm) để tối ưu độ tương phản, dễ đọc.",
+                            emotionAndLighting: "Biểu cảm nhân vật nên thân thiện, tự tin, nhìn thẳng vào người xem. Ánh sáng mềm mại, rõ ràng.",
+                            notes: "Sử dụng các biểu tượng đồ họa đơn giản, dễ hiểu để trực quan hóa quy trình hoặc kết quả."
+                        },
+                        aiPrompt: "A smiling, confident tech expert pointing to a glowing AI logo on a screen, bright and clean background, modern office setting, soft cinematic lighting, shot on Sony A7S III"
+                    },
+                    warning: {
+                        theme: "Cảnh báo / Giải pháp",
+                        strategicAnalysis: {
+                            desireLoop: "Người xem có một nỗi đau hoặc nỗi sợ (ví dụ: làm sai, thất bại, lãng phí thời gian) và muốn tìm giải pháp để tránh nó.",
+                            curiosityGap: "Sai lầm nguy hiểm đó là gì và làm thế nào để tôi phòng tránh nó ngay lập tức?"
+                        },
+                        titleSuggestions: ["Cảnh Báo: 7 Sai Lầm Chết Người Khiến Bạn Thất Bại Với [Chủ Đề]", "Đừng Làm [Hành Động] Nếu Bạn Chưa Biết Điều Này!", "Tại Sao 99% Mọi người Thất Bại Với [Chủ Đề] (Và Cách Sửa)"],
+                        thumbnailConcept: {
+                            primaryStunGun: "Khuôn mặt lớn với cảm xúc mạnh (Sốc/Lo lắng) + Màu sắc tương phản cao (Đỏ/Đen).",
+                            composition: "Bất đối xứng, đặt khuôn mặt ở một bên để tạo kịch tính. Có thể thêm vòng tròn đỏ để nhấn mạnh.",
+                            maxElements: "3 (Khuôn mặt biểu cảm + Text cảnh báo + Biểu tượng nguy hiểm).",
+                            textSuggestions: ["WARNING!", "STOP DOING THIS", "THE HIDDEN DANGER", "MISTAKE TO AVOID"],
+                        },
+                        designExecution: {
+                            colorPalette: "Nền tối (đen/xám đậm) với các điểm nhấn màu đỏ hoặc vàng để tạo cảm giác cấp bách, nguy hiểm.",
+                            emotionAndLighting: "Khuôn mặt thể hiện sự sốc, hoảng hốt hoặc nghiêm túc. Ánh sáng kịch tính, có thể dùng viền sáng (rim lighting) màu đỏ.",
+                            notes: "Tránh đặt chữ ở góc dưới bên phải (vị trí của timestamp). Sử dụng bóng đổ để chữ nổi bật trên nền."
+                        },
+                        aiPrompt: "A person with a shocked expression looking at a cracked screen displaying a red warning symbol, dark cinematic background, dramatic red neon rim lighting"
+                    },
+                    motivation: {
+                        theme: "Động lực / Phát triển bản thân",
+                        strategicAnalysis: {
+                            desireLoop: "Người xem khao khát một kết quả lớn lao (thành công, giàu có, hạnh phúc) và muốn biết con đường tắt hoặc bí quyết để đạt được nó.",
+                            curiosityGap: "Bí mật hoặc phương pháp nào đã giúp người này đạt được thành công phi thường đó?"
+                        },
+                        titleSuggestions: ["Bí Mật Giúp Tôi Kiếm [Số Tiền] Từ [Chủ Đề] Ở Tuổi [Tuổi]", "Cách Thay Đổi Cuộc Đời Bạn Trong 30 Ngày Với [Chủ Đề]", "Sức Mạnh Ít Ai Biết Của [Chủ Đề]"],
+                        thumbnailConcept: {
+                            primaryStunGun: "Hình ảnh thẩm mỹ cao (Aesthetic Imagery) hoặc Con số/Tiền tệ cỡ lớn.",
+                            composition: "Đối xứng (Symmetrical) để tạo cảm giác cân bằng, mạnh mẽ, hoặc Bất đối xứng với nhân vật nhìn về phía trước.",
+                            maxElements: "3 (Hình ảnh biểu tượng + Text chính + Một con số/kết quả).",
+                            textSuggestions: ["LEVEL UP", "$1,000,000 SECRET", "30-DAY CHALLENGE", "UNLOCK YOUR POTENTIAL"],
+                        },
+                        designExecution: {
+                            colorPalette: "Độ tương phản cực mạnh (nền đen - chữ neon/vàng cam). Sử dụng màu sắc truyền cảm hứng.",
+                            emotionAndLighting: "Biểu cảm tự tin, quyền lực. Ánh sáng điện ảnh, có thể là cảnh bình minh hoặc ngược sáng (silhouette).",
+                            notes: "Ưu tiên các yếu tố lớn, rõ ràng. Hình ảnh phải trông cao cấp và đầy khát vọng."
+                        },
+                        aiPrompt: "Silhouette of a person standing on a mountain peak at sunrise, looking confident, powerful orange and golden light, epic cinematic style, lens flare"
+                    },
+                    entertainment: {
+                        theme: "Giải trí / Vlog / Thử thách",
+                        strategicAnalysis: {
+                            desireLoop: "Người xem tò mò về một trải nghiệm độc đáo, hài hước hoặc kịch tính và muốn xem kết quả của nó.",
+                            curiosityGap: "Chuyện gì đã xảy ra trong trải nghiệm điên rồ/thú vị này?"
+                        },
+                        titleSuggestions: ["Tôi Đã Thử [Thử Thách Điên Rồ] và Đây Là Kết Quả!", "Trải Nghiệm 24 Giờ Sống Như [Người Nổi Tiếng]", "Vlog [Địa Điểm]: Chuyến Đi Bất Ổn Nhất Của Tôi"],
+                         thumbnailConcept: {
+                            primaryStunGun: "Thiết kế kiểu cắt dán (Collage) hoặc Khuôn mặt với cảm xúc cường điệu.",
+                            composition: "Bất đối xứng, năng động. Có thể hơi lộn xộn một cách có chủ đích để tạo cảm giác chân thực, vui vẻ.",
+                            maxElements: "Nhiều (kiểu collage) hoặc 3 (Khuôn mặt + Text + Hình ảnh kết quả).",
+                            textSuggestions: ["I TRIED IT!", "OMG!", "WHAT HAPPENED?!", "24 HOUR CHALLENGE"],
+                        },
+                        designExecution: {
+                            colorPalette: "Màu sắc tươi sáng, rực rỡ, có thể là đa sắc màu. Không ngại dùng các màu nổi bật.",
+                            emotionAndLighting: "Cảm xúc cường điệu hóa: cực kỳ ngạc nhiên, vui vẻ tột độ, hoặc hài hước. Ánh sáng tự nhiên, tươi sáng.",
+                            notes: "Thêm các mũi tên, vòng tròn hoặc sticker để tăng thêm sự vui nhộn và hướng sự chú ý."
+                        },
+                        aiPrompt: "A young person with a comical, exaggerated surprised face, holding a weird food item, colorful and bright background with motion blur, fun and energetic style"
+                    }
+                };
+                suggestionSets.general = suggestionSets.education;
+                return suggestionSets[theme];
+            };
+
             const handleImageChange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -186,9 +318,7 @@
                     setError('');
                     setFileName(file.name);
                     const reader = new FileReader();
-                    reader.onloadend = () => {
-                        setImage(reader.result);
-                    };
+                    reader.onloadend = () => { setImage(reader.result); };
                     reader.readAsDataURL(file);
                 }
             };
@@ -205,40 +335,33 @@
                 setActiveTab('analysis');
 
                 setTimeout(() => {
+                    const theme = detectTheme(title);
+                    const dynamicSuggestions = generateSuggestions(theme);
+                    
+                    const randomScore = () => 4 + Math.floor(Math.random() * 6);
                     const mockAnalysis = {
                         scores: [
-                            { label: 'Visual Stun Gun (Gây chú ý)', score: 7 },
-                            { label: 'Desire Loop (Gợi tò mò)', score: 6 },
-                            { label: 'Validation Layer (Củng cố tiêu đề)', score: 8 },
-                            { label: '3 Elements Rule (Bố cục 3 yếu tố)', score: 9 },
-                            { label: 'Emotion & Lighting (Cảm xúc & Ánh sáng)', score: 5 },
+                            { label: 'Visual Stun Gun (Gây chú ý)', score: randomScore() },
+                            { label: 'Desire Loop (Gợi tò mò)', score: randomScore() },
+                            { label: 'Validation Layer (Củng cố tiêu đề)', score: randomScore() },
+                            { label: '3 Elements Rule (Bố cục 3 yếu tố)', score: randomScore() },
+                            { label: 'Emotion & Lighting (Cảm xúc & Ánh sáng)', score: randomScore() },
                         ],
                         feedback: {
                             strengths: 'Bố cục rõ ràng, dễ đọc. Hình ảnh có liên quan trực tiếp đến tiêu đề.',
                             improvements: 'Màu sắc hơi nhạt, thiếu độ tương phản. Cảm xúc nhân vật chưa thực sự nổi bật.',
                         },
                         details: [
-                            { element: 'Tone màu', description: 'Xanh dương, Trắng - Mang lại cảm giác công nghệ, tin tưởng.' },
-                            { element: 'Cảm xúc', description: 'Trung tính, hơi bất ngờ.' },
-                            { element: 'Độ tương phản', description: 'Trung bình, có thể cải thiện để text nổi bật hơn.' },
-                            { element: 'Bố cục', description: 'Đối tượng chính bên phải, text bên trái - Bố cục A/B cổ điển.' },
-                            { element: 'Keyword chính', description: 'AI, HACKS, NEED' },
+                            { element: 'Tone màu', description: 'Phụ thuộc vào ảnh (ví dụ: Xanh dương, Trắng).' },
+                            { element: 'Cảm xúc', description: 'Phụ thuộc vào ảnh (ví dụ: Trung tính).' },
+                            { element: 'Độ tương phản', description: 'Trung bình, có thể cải thiện.' },
+                            { element: 'Bố cục', description: 'Phụ thuộc vào ảnh (ví dụ: Đối xứng).' },
+                            { element: 'Keywords chính', description: 'Phụ thuộc vào ảnh (ví dụ: AI, HACKS, NEED).' },
                         ]
-                    };
-                    
-                    const mockSuggestions = {
-                        titles: [
-                            "Cách [Chuyên Gia] Sử Dụng AI Để [Đạt Kết Quả] Nhanh Gấp 10 Lần",
-                            "Tại Sao 99% Người Dùng AI Vẫn Thất Bại? (Và Cách Sửa)",
-                            "Tôi Đã Thử 5 AI Hacks Giúp Tiết Kiệm 20 Giờ/Tuần - Đây là kết quả!",
-                        ],
-                        thumbnailTexts: [ "AI HACKS 2025", "STOP WASTING TIME", "THE UNFAIR WAY", "AI THAY ĐỔI TẤT CẢ" ],
-                        style: "Chủ đề Giáo dục / AI / Hướng dẫn → Sử dụng nền trắng hoặc xanh lam nhạt, text màu đen hoặc xanh đậm để tối ưu độ tương phản. Biểu cảm nhân vật nên thân thiện, tự tin và nhìn thẳng vào người xem.",
-                        prompt: "A confident young Vietnamese man pointing at a glowing AI brain logo, bright and clean background, modern tech office setting, cinematic soft lighting, shot on Sony A7S III"
                     };
 
                     setAnalysisResult(mockAnalysis);
-                    setSuggestions(mockSuggestions);
+                    setSuggestions(dynamicSuggestions);
                     setIsLoading(false);
                 }, 2000);
             }, [image, title]);
@@ -254,12 +377,12 @@
                                 AI YouTube Thumbnail <span className="text-cyan-400">Analyzer</span>
                             </h1>
                             <p className="mt-4 text-lg text-slate-400 max-w-2xl mx-auto">
-                                Phân tích và cải thiện thumbnail của bạn để tăng tỷ lệ nhấp chuột (CTR) với sức mạnh của AI.
+                                Phân tích và cải thiện thumbnail của bạn với quy trình chuyên nghiệp dựa trên tâm lý học người xem.
                             </p>
                         </header>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                            {/* --- CỘT TRÁI: INPUT --- */}
+                            {/* --- LEFT COLUMN: INPUT --- */}
                             <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 backdrop-blur-sm self-start">
                                 <h2 className="text-2xl font-bold mb-2">Bước 1: Nhập thông tin</h2>
                                 <p className="text-slate-400 mb-6">Tải lên thumbnail và tiêu đề video hiện tại của bạn.</p>
@@ -325,15 +448,15 @@
                                             </React.Fragment>
                                         ) : (
                                             <React.Fragment>
-                                                <WandSparklesIcon className="w-5 h-5"/>
-                                                Phân tích bằng AI
+                                                <ZapIcon className="w-5 h-5"/>
+                                                Phân tích & Cải thiện
                                             </React.Fragment>
                                         )}
                                     </button>
                                 </div>
                             </div>
                             
-                            {/* --- CỘT PHẢI: OUTPUT --- */}
+                            {/* --- RIGHT COLUMN: OUTPUT --- */}
                             <div className="min-h-[400px]">
                                 {isLoading && (
                                     <div className="flex flex-col items-center justify-center h-full bg-slate-800/50 p-8 rounded-2xl border border-dashed border-slate-700">
@@ -358,7 +481,7 @@
                                                                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-500'
                                                         } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}
                                                     >
-                                                        Phân tích chi tiết
+                                                        Phân tích Chi tiết
                                                     </button>
                                                     <button
                                                         onClick={() => setActiveTab('suggestions')}
@@ -368,7 +491,7 @@
                                                                 : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-500'
                                                         } whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors`}
                                                     >
-                                                        Gợi ý Cải thiện
+                                                        Gợi ý Cải thiện (Pro)
                                                     </button>
                                                 </nav>
                                             </div>
@@ -397,3 +520,4 @@
     </script>
 </body>
 </html>
+
