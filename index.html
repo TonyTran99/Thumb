@@ -58,12 +58,6 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
             </svg>
         );
-
-        const XCircleIcon = (props) => (
-            <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>
-            </svg>
-        );
         
         const ZapIcon = (props) => (
           <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
@@ -71,46 +65,115 @@
 
 
         // --- CHILD COMPONENTS ---
-        const AnalysisItem = ({ data }) => {
-            const getScoreStyle = (score) => {
-                if (score >= 8) return { label: 'Tốt', color: 'bg-green-500/10 text-green-400' };
-                if (score >= 5) return { label: 'Khá', color: 'bg-yellow-500/10 text-yellow-400' };
-                return { label: 'Cần cải thiện', color: 'bg-red-500/10 text-red-400' };
-            };
+        const AnalysisResults = ({ analysis }) => {
+            if (!analysis) return null;
             
-            const scoreStyle = getScoreStyle(data.score);
-
-            return (
-                <div className="bg-slate-800/60 border border-slate-700 p-4 rounded-xl backdrop-blur-sm">
-                    <h4 className="text-md font-bold text-cyan-400 mb-1">{data.title}</h4>
-                    <p className="italic text-slate-400 text-xs mb-3">"{data.question}"</p>
-                    <ul className="space-y-2 text-sm mb-4">
-                        {data.checklist.map((item, index) => (
-                            <li key={index} className={`flex items-start ${item.status ? 'text-slate-300' : 'text-slate-500'}`}>
-                                {item.status 
-                                    ? <CheckCircleIcon className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" /> 
-                                    : <XCircleIcon className="w-4 h-4 text-slate-600 mr-2 mt-0.5 flex-shrink-0" />}
-                                <span>{item.text}</span>
+            const PsychologyStep = ({ step }) => (
+                <div className="mb-4">
+                    <h3 className="text-lg font-bold text-cyan-400 mb-2">{step.title}</h3>
+                    <ul className="space-y-2 text-sm mb-3 pl-2">
+                        {(step.attractionFactors || step.validationPoints).map((item, index) => (
+                            <li key={index} className="flex items-start text-slate-300">
+                                <CheckCircleIcon className="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                                <span>{item}</span>
                             </li>
                         ))}
+                        {step.titlePromise && <p className="text-slate-300 pl-6">{step.titlePromise}</p>}
+                        {step.painPointSolution && <p className="text-sm text-cyan-300 bg-cyan-500/10 p-2 mt-2 rounded-md pl-6"><strong>⚙️ Pain point → Solution:</strong> {step.painPointSolution}</p>}
                     </ul>
-                    <div className="bg-slate-900/50 p-3 rounded-md">
-                        <div className="flex justify-between items-center text-sm font-medium">
-                            <span className="text-slate-300">Đánh giá:</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${scoreStyle.color}`}>{scoreStyle.label}</span>
+                    <p className="text-sm text-slate-400 bg-slate-900/50 p-3 rounded-md">📌 → {step.summary}</p>
+                </div>
+            );
+
+            return (
+                <div className="animate-fade-in space-y-8 bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm">
+                    {/* Section 1: Overview */}
+                    <div className="pb-4 border-b border-slate-700">
+                        <h2 className="text-xl font-bold text-white mb-3">🎯 1. Tổng quan – Mục tiêu thumbnail</h2>
+                        <div className="space-y-1 text-sm">
+                            <p><strong className="text-slate-300 w-28 inline-block">Video:</strong> <span className="text-slate-400">"{analysis.overview.videoTitle}"</span></p>
+                            <p><strong className="text-slate-300 w-28 inline-block">Thông điệp:</strong> <span className="text-slate-400">{analysis.overview.mainMessage}</span></p>
+                            <p><strong className="text-slate-300 w-28 inline-block">Chiến lược:</strong> <span className="text-slate-400">{analysis.overview.strategy}</span></p>
                         </div>
-                        <p className="text-xs text-slate-400 mt-2">{data.summary}</p>
+                    </div>
+
+                    {/* Section 2: Psychology Steps */}
+                    <div className="pb-4 border-b border-slate-700">
+                        <h2 className="text-xl font-bold text-white mb-4">🧠 2. Phân tích theo 3 bước tâm lý người xem</h2>
+                        <PsychologyStep step={analysis.psychologySteps.stunGun} />
+                        <PsychologyStep step={analysis.psychologySteps.valueHunting} />
+                        <PsychologyStep step={analysis.psychologySteps.validation} />
+                    </div>
+                    
+                    {/* Section 3: Design Techniques */}
+                    <div className="pb-4 border-b border-slate-700">
+                        <h2 className="text-xl font-bold text-white mb-4">🧩 3. Phân tích kỹ thuật thiết kế</h2>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left text-slate-300">
+                                <thead className="text-xs text-cyan-300 uppercase bg-slate-700/50">
+                                    <tr>
+                                        <th scope="col" className="px-4 py-2 rounded-l-lg">Thành phần</th>
+                                        <th scope="col" className="px-4 py-2">Đánh giá</th>
+                                        <th scope="col" className="px-4 py-2 rounded-r-lg">Giải thích</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {analysis.designTechniques.map((item, index) => (
+                                        <tr key={index} className="border-b border-slate-700">
+                                            <td className="px-4 py-2 font-medium text-white">{item.component}</td>
+                                            <td className="px-4 py-2">{item.evaluation}</td>
+                                            <td className="px-4 py-2 text-slate-400">{item.explanation}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Section 4: Playbook Adoption */}
+                    <div className="pb-4 border-b border-slate-700">
+                        <h2 className="text-xl font-bold text-white mb-4">📈 4. Mức độ áp dụng Playbook</h2>
+                         <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left text-slate-300">
+                                <thead className="text-xs text-cyan-300 uppercase bg-slate-700/50">
+                                    <tr>
+                                        <th scope="col" className="px-4 py-2 rounded-l-lg w-1/3">Bước</th>
+                                        <th scope="col" className="px-4 py-2">Mức độ thực hiện</th>
+                                        <th scope="col" className="px-4 py-2 rounded-r-lg">Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {analysis.playbookAdoption.map((item, index) => (
+                                        <tr key={index} className="border-b border-slate-700">
+                                            <td className="px-4 py-2 font-medium text-white">{item.step}</td>
+                                            <td className="px-4 py-2 font-bold">{item.level}</td>
+                                            <td className="px-4 py-2 text-slate-400">{item.notes}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Section 5: Hidden Message */}
+                     <div className="pb-4 border-b border-slate-700">
+                        <h2 className="text-xl font-bold text-white mb-3">💬 5. Thông điệp cảm xúc ẩn</h2>
+                        <p className="text-slate-300 bg-slate-900/50 p-3 rounded-md italic">"{analysis.hiddenMessage}"</p>
+                    </div>
+
+                    {/* Section 6: Lessons */}
+                    <div>
+                        <h2 className="text-xl font-bold text-white mb-3">🧠 6. Bài học rút ra cho bạn</h2>
+                        <ul className="space-y-2 text-sm list-disc list-inside pl-2">
+                            {analysis.lessons.map((lesson, index) => (
+                                <li key={index} className="text-slate-300">{lesson}</li>
+                            ))}
+                        </ul>
                     </div>
                 </div>
             );
         };
         
-        const AnalysisResults = ({ analysis }) => (
-            <div className="animate-fade-in space-y-4">
-                {analysis.map((item, index) => <AnalysisItem key={index} data={item} />)}
-            </div>
-        );
-
         const Suggestions = ({ suggestions }) => (
             <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm space-y-6 animate-fade-in">
                 
@@ -196,7 +259,7 @@
             };
 
             const generateSuggestions = (theme) => {
-                const suggestionSets = {
+                 const suggestionSets = {
                     education: {
                         theme: "Giáo dục / Hướng dẫn",
                         strategicAnalysis: {
@@ -278,84 +341,66 @@
                         aiPrompt: "A young person with a comical, exaggerated surprised face, holding a weird food item, colorful and bright background with motion blur, fun and energetic style"
                     }
                 };
-                suggestionSets.general = suggestionSets.education;
-                return suggestionSets[theme];
+                suggestionSets.general = suggestionSets.motivation;
+                return suggestionSets[theme] || suggestionSets.general;
             };
-
-            const generateAnalysis = () => {
-                const randomBool = () => Math.random() > 0.4; // 60% chance of true
-                const randomScore = () => 3 + Math.floor(Math.random() * 7); // Score between 3-9
+            
+            const generateAnalysis = (theme, videoTitle) => {
+                const templates = {
+                    motivation: {
+                        overview: {
+                            videoTitle: videoTitle,
+                            mainMessage: "Thay đổi cuộc sống bằng cách tối ưu hóa một thói quen cụ thể (ví dụ: buổi tối).",
+                            strategy: "Dẫn người xem từ cảm giác tội lỗi/phí thời gian → ham muốn thay đổi có cơ sở/đã được kiểm chứng."
+                        },
+                        psychologySteps: {
+                            stunGun: {
+                                title: "Bước 1 – Visual Stun Gun (Sốc thị giác)",
+                                attractionFactors: ["Màu đỏ–trắng–đen tạo tương phản cực mạnh, đánh thẳng vào thị giác.", "Font chữ to, bold, sans-serif, dễ đọc dù ở kích thước nhỏ.", "Cụm từ dùng mệnh lệnh mạnh (ví dụ: 'STOP WASTING'), kích hoạt cảm xúc bị cảnh báo.", "Gương mặt nghiêm nghị, ánh sáng tối nền, gợi cảm giác nghiêm túc và đáng tin."],
+                                summary: "Thumbnail khiến người xem dừng lại ngay vì “bị nhắc lỗi”: “Mình có đang lãng phí thời gian không?”"
+                            },
+                            valueHunting: {
+                                title: "Bước 2 – Title Value Hunting (Săn lùng giá trị)",
+                                titlePromise: `Tiêu đề gợi ý lời hứa cụ thể: một thói quen dựa trên khoa học, đã được kiểm chứng, mang lại thay đổi thật. Từ khóa “Science-based” tăng uy tín, cụm “Changed my life” khơi ham muốn.`,
+                                painPointSolution: "bạn đang lãng phí buổi tối → đây là thói quen khoa học giúp bạn thay đổi.",
+                                summary: "Sự kết hợp giữa hình ảnh cảnh báo lỗi sai và tiêu đề đưa ra giải pháp đã hoàn chỉnh Vòng lặp Ham muốn (Desire Loop)."
+                            },
+                            validation: {
+                                title: "Bước 3 – Visual Validation (Xác thực hình ảnh)",
+                                validationPoints: ["Gương mặt thật, ánh sáng chuyên nghiệp, cảm xúc nghiêm túc → xác nhận uy tín, đáng nghe.", "Cụm chữ trên ảnh củng cố thông điệp của tiêu đề (ví dụ: 'STOP WASTING YOUR EVENINGS' củng cố 'Nighttime Routine')."],
+                                summary: "Sự tương hỗ giữa text và hình giúp lời hứa trong tiêu đề trở nên đáng tin, tăng CTR mạnh."
+                            }
+                        },
+                        designTechniques: [
+                            { component: "Bố cục", evaluation: "Bất đối xứng", explanation: "Gương mặt chiếm 1/3 phải, chữ chiếm 2/3 trái → cân bằng thị giác." },
+                            { component: "Màu sắc", evaluation: "Đỏ – trắng – đen", explanation: "Đỏ = cảnh báo, trắng = rõ ràng, đen = nghiêm túc, tạo cảm giác thẩm quyền." },
+                            { component: "Font chữ", evaluation: "Rất lớn, in hoa", explanation: "Tăng “cú đấm thị giác” – dễ đọc khi thu nhỏ." },
+                            { component: "Cảm xúc", evaluation: "Trung tính – nghiêm nghị", explanation: "Phù hợp với thông điệp “ngừng lãng phí”, tạo uy tín." },
+                            { component: "Số yếu tố", evaluation: "3 (mặt – text – nền)", explanation: "Tuân thủ quy tắc vàng “3 elements rule”." }
+                        ],
+                        playbookAdoption: [
+                            { step: "1️⃣ Tư duy chiến lược", level: "✅ Rất tốt", notes: "Thumbnail được đầu tư như “bao bì chính”." },
+                            { step: "2️⃣ Vòng lặp ham muốn", level: "✅ Rõ ràng", notes: "“Lãng phí” → “Thay đổi bằng khoa học”." },
+                            { step: "3️⃣ Ý tưởng & bố cục", level: "✅ Chuẩn xác", notes: "Chữ to + mặt + nền tối." },
+                            { step: "4️⃣ Thiết kế", level: "✅ Xuất sắc", notes: "Đơn giản, tương phản, rõ ràng." },
+                            { step: "5️⃣ Kiểm thử", level: "❔ Có thể", notes: "Có thể đã được A/B test trước khi lên chính thức." }
+                        ],
+                        hiddenMessage: "“Bạn đang phá hỏng buổi tối của chính mình — tôi sẽ chỉ bạn cách lấy lại nó bằng khoa học.”",
+                        lessons: ["Chữ mệnh lệnh mạnh (“Stop”, “Don’t”) luôn tạo lực hút ban đầu.", "Kết hợp đối lập: Cảm xúc mạnh (sợ/lỗi) + lý trí (science/logic) giúp người xem vừa tò mò vừa tin tưởng.", "Càng ít yếu tố – càng dễ click: 3 thành phần chính truyền tải toàn bộ câu chuyện.", "Tông nghiêm túc = tăng uy tín: phong cách tối, sắc nét giúp tăng cảm giác “đáng nghe”."]
+                    },
+                    // Add other themes here based on the motivation template
+                    education: { /* ... adapted content ... */ },
+                    warning: { /* ... adapted content ... */ },
+                    entertainment: { /* ... adapted content ... */ }
+                };
                 
-                return [
-                    {
-                        title: "1. Quan sát “Cú Sốc Thị Giác” – Visual Stun Gun",
-                        question: "Nếu tôi lướt thật nhanh, mắt tôi có bị dừng lại không?",
-                        score: randomScore(),
-                        checklist: [
-                            { text: "Màu sắc tương phản cực mạnh (xanh – cam, đỏ – trắng...).", status: randomBool() },
-                            { text: "Có một yếu tố nổi bật (khuôn mặt to, cử chỉ tay mạnh).", status: randomBool() },
-                            { text: "Dùng mũi tên đỏ, vòng tròn để chỉ dẫn mắt.", status: Math.random() > 0.7 },
-                            { text: "Chủ thể sáng – nền tối hoặc ngược lại, tách bạch rõ.", status: randomBool() }
-                        ],
-                        summary: "Đánh giá khả năng thu hút sự chú ý ban đầu của thumbnail trong một biển thông tin."
-                    },
-                    {
-                        title: "2. Kiểm tra “Vòng Lặp Ham Muốn” – Desire / Curiosity Loop",
-                        question: "Nó gợi ra vấn đề tôi muốn giải quyết, hay một điều tôi tò mò chưa biết?",
-                        score: randomScore(),
-                        checklist: [
-                             { text: "Khơi gợi câu hỏi “Làm sao?” / “Tại sao?” trong tâm trí người xem.", status: randomBool() },
-                             { text: "Có dấu hiệu của điểm đau (ví dụ: “Sai lầm”, “Thất bại”).", status: Math.random() > 0.6 },
-                             { text: "Thể hiện kết quả ham muốn (ví dụ: “Từ 0 đến 100K”, “Gấp 3 doanh thu”).", status: randomBool() },
-                             { text: "Phối hợp hình và chữ để mở ra câu hỏi chưa được trả lời.", status: randomBool() }
-                        ],
-                        summary: "Kiểm tra xem thumbnail có tạo ra một lý do tâm lý đủ mạnh để người xem phải nhấp chuột hay không."
-                    },
-                    {
-                        title: "3. Xem Sự Phối Hợp Tiêu Đề – Thumbnail (Title–Image Sync)",
-                        question: "Hình có làm rõ lời hứa trong tiêu đề không?",
-                        score: randomScore(),
-                        checklist: [
-                             { text: "Hình ảnh và chữ KHÔNG lặp lại, mà bổ sung cho nhau.", status: randomBool() },
-                             { text: "Thông điệp hình ảnh củng cố niềm tin vào điều tiêu đề hứa hẹn.", status: randomBool() },
-                             { text: "Cảm xúc trên khuôn mặt phù hợp với lời hứa của tiêu đề.", status: randomBool() }
-                        ],
-                        summary: "Đây là bước 'Xác thực bằng Hình ảnh' cuối cùng. Sự đồng bộ quyết định cú nhấp chuột."
-                    },
-                    {
-                        title: "4. Kiểm tra “Quy Tắc Ba Yếu Tố” (3 Elements Rule)",
-                        question: "Thumbnail này có quá tải không? Tôi có thể hiểu nội dung trong 1 giây không?",
-                        score: randomScore(),
-                        checklist: [
-                             { text: "Chỉ có tối đa 3 yếu tố chính (ví dụ: mặt, text, biểu tượng).", status: randomBool() },
-                             { text: "Không có chi tiết nhỏ, rối mắt; font chữ dày, dễ đọc.", status: randomBool() },
-                             { text: "Nhìn rõ ràng và dễ hiểu ngay cả trên màn hình điện thoại.", status: randomBool() }
-                        ],
-                        summary: "Sự đơn giản là chìa khóa để não bộ xử lý thông tin nhanh chóng và quyết định nhấp chuột."
-                    },
-                    {
-                        title: "5. Quan sát “Cảm Xúc – Ánh Nhìn – Hướng Tay”",
-                        question: "Mắt và tay nhân vật đang dẫn tôi nhìn về đâu?",
-                        score: randomScore(),
-                        checklist: [
-                             { text: "Hướng mắt, hướng tay, hoặc đường sáng dẫn bạn tới điểm chính.", status: randomBool() },
-                             { text: "Khuôn mặt thể hiện đúng cảm xúc mà video hứa hẹn.", status: randomBool() },
-                             { text: "Hình ảnh có chiều sâu (shadow, mờ nền) để tách rõ chủ thể.", status: randomBool() }
-                        ],
-                        summary: "Các yếu tố vô hình này điều khiển tiềm thức của người xem và xây dựng kết nối cảm xúc."
-                    },
-                     {
-                        title: "6. Tiềm năng “Thử Nghiệm A/B” – Testing Pattern",
-                        question: "Thumbnail này có dễ dàng tạo ra các biến thể để thử nghiệm không?",
-                        score: randomScore(),
-                        checklist: [
-                             { text: "Gợi ý 1: Thử đổi màu nền để tăng độ tương phản.", status: true },
-                             { text: "Gợi ý 2: Thay đổi biểu cảm khuôn mặt (ví dụ: từ ngạc nhiên sang vui vẻ).", status: true },
-                             { text: "Gợi ý 3: Thay đổi text trên ảnh để nhấn mạnh vào 'điểm đau' thay vì 'kết quả'.", status: true }
-                        ],
-                        summary: "Một thumbnail tốt không chỉ hiệu quả mà còn linh hoạt. Luôn nghĩ cách để thử nghiệm và tối ưu hóa."
-                    },
-                ];
+                // For brevity, we'll reuse the motivation template for other themes in this simulation
+                templates.education = { ...templates.motivation, overview: { ...templates.motivation.overview, videoTitle: videoTitle, strategy: "Cung cấp giải pháp rõ ràng, dựa trên kiến thức chuyên môn cho một vấn đề học thuật hoặc kỹ thuật." }};
+                templates.warning = { ...templates.motivation, overview: { ...templates.motivation.overview, videoTitle: videoTitle, strategy: "Tạo ra sự cấp bách và cảnh báo về một sai lầm phổ biến, đồng thời cung cấp lối thoát." }};
+                templates.entertainment = { ...templates.motivation, overview: { ...templates.motivation.overview, videoTitle: videoTitle, strategy: "Gây tò mò cực độ về một trải nghiệm hoặc kết quả bất thường, hài hước." }};
+                templates.general = templates.motivation;
+
+                return templates[theme] || templates.general;
             };
 
             const handleImageChange = (e) => {
@@ -387,7 +432,7 @@
                 setTimeout(() => {
                     const theme = detectTheme(title);
                     const dynamicSuggestions = generateSuggestions(theme);
-                    const dynamicAnalysis = generateAnalysis();
+                    const dynamicAnalysis = generateAnalysis(theme, title);
                     
                     setAnalysisResult(dynamicAnalysis);
                     setSuggestions(dynamicSuggestions);
