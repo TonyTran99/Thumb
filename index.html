@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI YouTube Thumbnail Analyzer</title>
+    <title>AI YouTube Thumbnail Analyzer (Dynamic)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React Libraries -->
@@ -17,7 +17,7 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        /* A custom style to create the grid background effect since Tailwind JIT classes don't work via CDN */
+        /* A custom style to create the grid background effect */
         .bg-grid-custom {
             background-image:
                 linear-gradient(rgba(100, 116, 139, 0.1) 1px, transparent 1px),
@@ -32,7 +32,7 @@
     <script type="text/babel">
         const { useState, useCallback, useMemo } = React;
 
-        // --- BIỂU TƯỢỢNG (ICONS) ---
+        // --- ICONS ---
         const UploadCloudIcon = (props) => (
           <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" /><path d="M12 12v9" /><path d="m16 16-4-4-4 4" />
@@ -57,7 +57,7 @@
             </svg>
         );
 
-        // --- COMPONENT CON ---
+        // --- CHILD COMPONENTS ---
         const ScoreBar = ({ label, score }) => {
             const scoreColor = useMemo(() => {
                 if (score >= 8) return 'bg-cyan-400';
@@ -79,7 +79,7 @@
         };
 
         const AnalysisResults = ({ analysis }) => (
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm">
+            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm animate-fade-in">
                 <h3 className="text-2xl font-bold text-white mb-6">Kết quả Phân tích Thumbnail</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
@@ -125,7 +125,7 @@
         );
 
         const Suggestions = ({ suggestions }) => (
-            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm space-y-6">
+            <div className="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm space-y-6 animate-fade-in">
                 <div>
                     <h4 className="text-lg font-semibold text-cyan-400 mb-2 flex items-center">
                         <WandSparklesIcon className="w-5 h-5 mr-2" /> A. Gợi ý Tiêu đề (YouTube SEO)
@@ -153,7 +153,6 @@
                         <button 
                             onClick={() => {
                                 navigator.clipboard.writeText(suggestions.prompt);
-                                // Optional: add a small feedback message
                                 alert('Đã sao chép prompt!');
                             }}
                             className="mt-3 text-xs bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1 px-3 rounded-md transition-colors"
@@ -165,7 +164,7 @@
             </div>
         );
 
-        // --- COMPONENT CHÍNH (APP) ---
+        // --- MAIN APP COMPONENT ---
         function App() {
             const [image, setImage] = useState(null);
             const [title, setTitle] = useState('');
@@ -175,6 +174,65 @@
             const [suggestions, setSuggestions] = useState(null);
             const [activeTab, setActiveTab] = useState('analysis');
             const [error, setError] = useState('');
+
+            // =================================================================
+            // NEW DYNAMIC LOGIC STARTS HERE
+            // =================================================================
+
+            // Simulated function to detect video theme from title keywords
+            const detectTheme = (videoTitle) => {
+                const lowerCaseTitle = videoTitle.toLowerCase();
+                if (['how to', 'guide', 'ai', 'learn', 'hacks', 'tutorial', 'review'].some(kw => lowerCaseTitle.includes(kw))) {
+                    return 'education';
+                }
+                if (['warning', 'stop', 'mistake', 'problem', 'why your', 'danger', 'fix'].some(kw => lowerCaseTitle.includes(kw))) {
+                    return 'warning';
+                }
+                if (['motivation', 'secret', 'success', 'millionaire', 'unlock', 'powerful', 'change your life'].some(kw => lowerCaseTitle.includes(kw))) {
+                    return 'motivation';
+                }
+                 if (['i tried', 'challenge', 'vlog', 'my trip', 'day in the life', 'experiment'].some(kw => lowerCaseTitle.includes(kw))) {
+                    return 'entertainment';
+                }
+                return 'general'; // Default theme
+            };
+
+            // Generate different suggestions based on the detected theme
+            const generateSuggestions = (theme) => {
+                const suggestionSets = {
+                    education: {
+                        titles: ["Cách Chuyên Gia Sử Dụng [Topic] Để Đạt Kết Quả X10", "Hướng Dẫn [Topic] Toàn Tập Cho Người Mới Bắt Đầu (2025)", "5 [Topic] Hacks Giúp Bạn Tiết Kiệm 20 Giờ/Tuần"],
+                        thumbnailTexts: ["AI HACKS 2025", "MASTERCLASS", "THE ULTIMATE GUIDE", "PRO LEVEL"],
+                        style: "Chủ đề Giáo dục/Công nghệ → Sử dụng nền trắng hoặc xanh lam nhạt, text màu đen/xanh đậm để tối ưu độ tương phản. Biểu cảm nhân vật nên thân thiện, tự tin.",
+                        prompt: "A smiling, confident tech expert pointing to a glowing AI logo on a screen, bright and clean background, modern office setting, soft cinematic lighting, shot on Sony A7S III"
+                    },
+                    warning: {
+                        titles: ["Cảnh Báo: 7 Sai Lầm Chết Người Khiến Bạn Thất Bại Với [Topic]", "Đừng Làm [Topic] Nếu Bạn Chưa Biết Điều Này!", "Tại Sao 99% Mọi người Thất Bại Với [Topic] (Và Cách Sửa)"],
+                        thumbnailTexts: ["WARNING!", "STOP DOING THIS", "THE HIDDEN DANGER", "MISTAKE TO AVOID"],
+                        style: "Chủ đề Cảnh báo/Giải pháp → Sử dụng nền đen, đỏ, hoặc vàng để tạo cảm giác cấp bách. Khuôn mặt biểu cảm nghiêm túc, sốc, hoặc lo lắng.",
+                        prompt: "A person with a shocked expression looking at a cracked screen displaying a red warning symbol, dark cinematic background, dramatic red neon rim lighting"
+                    },
+                    motivation: {
+                        titles: ["Bí Mật Giúp Tôi Kiếm [Số Tiền] Từ [Topic] Ở Tuổi [Tuổi]", "Cách Thay Đổi Cuộc Đời Bạn Trong 30 Ngày Với [Topic]", "Sức Mạnh Ít Ai Biết Của [Topic]"],
+                        thumbnailTexts: ["LEVEL UP YOUR LIFE", "THE $1,000,000 SECRET", "30-DAY CHALLENGE", "UNLOCK YOUR POTENTIAL"],
+                        style: "Chủ đề Động lực/Phát triển bản thân → Nền có độ tương phản mạnh (đen-neon, đen-vàng cam). Biểu cảm tự tin, mạnh mẽ, hoặc hình ảnh mang tính biểu tượng.",
+                        prompt: "Silhouette of a person standing on a mountain peak at sunrise, looking confident, powerful orange and golden light, epic cinematic style, lens flare"
+                    },
+                    entertainment: {
+                        titles: ["Tôi Đã Thử [Thử Thách Điên Rồ] và Đây Là Kết Quả!", "Trải Nghiệm 24 Giờ Sống Như [Người Nổi Tiếng]", "Vlog [Địa Điểm]: Chuyến Đi Bất Ổn Nhất Của Tôi"],
+                        thumbnailTexts: ["I TRIED IT!", "OMG!", "WHAT HAPPENED?!", "24 HOUR CHALLENGE"],
+                        style: "Chủ đề Giải trí/Vlog → Sử dụng màu sắc tươi sáng, rực rỡ. Khuôn mặt biểu cảm đa dạng (vui, ngạc nhiên, hài hước). Bố cục có thể lộn xộn, năng động hơn.",
+                        prompt: "A young person with a comical, exaggerated surprised face, holding a weird food item, colorful and bright background with motion blur, fun and energetic style"
+                    }
+                };
+                // Use general set as a fallback for education
+                suggestionSets.general = suggestionSets.education;
+                return suggestionSets[theme];
+            };
+
+            // =================================================================
+            // NEW DYNAMIC LOGIC ENDS HERE
+            // =================================================================
             
             const handleImageChange = (e) => {
                 const file = e.target.files[0];
@@ -205,40 +263,35 @@
                 setActiveTab('analysis');
 
                 setTimeout(() => {
+                    // --- DYNAMIC PART ---
+                    const theme = detectTheme(title);
+                    const dynamicSuggestions = generateSuggestions(theme);
+                    
+                    // --- SLIGHTLY RANDOMIZED ANALYSIS ---
+                    const randomScore = () => 5 + Math.floor(Math.random() * 5); // Score between 5-9
                     const mockAnalysis = {
                         scores: [
-                            { label: 'Visual Stun Gun (Gây chú ý)', score: 7 },
-                            { label: 'Desire Loop (Gợi tò mò)', score: 6 },
-                            { label: 'Validation Layer (Củng cố tiêu đề)', score: 8 },
-                            { label: '3 Elements Rule (Bố cục 3 yếu tố)', score: 9 },
-                            { label: 'Emotion & Lighting (Cảm xúc & Ánh sáng)', score: 5 },
+                            { label: 'Visual Stun Gun (Gây chú ý)', score: randomScore() },
+                            { label: 'Desire Loop (Gợi tò mò)', score: randomScore() },
+                            { label: 'Validation Layer (Củng cố tiêu đề)', score: randomScore() },
+                            { label: '3 Elements Rule (Bố cục 3 yếu tố)', score: randomScore() },
+                            { label: 'Emotion & Lighting (Cảm xúc & Ánh sáng)', score: randomScore() },
                         ],
                         feedback: {
                             strengths: 'Bố cục rõ ràng, dễ đọc. Hình ảnh có liên quan trực tiếp đến tiêu đề.',
                             improvements: 'Màu sắc hơi nhạt, thiếu độ tương phản. Cảm xúc nhân vật chưa thực sự nổi bật.',
                         },
                         details: [
-                            { element: 'Tone màu', description: 'Xanh dương, Trắng - Mang lại cảm giác công nghệ, tin tưởng.' },
-                            { element: 'Cảm xúc', description: 'Trung tính, hơi bất ngờ.' },
-                            { element: 'Độ tương phản', description: 'Trung bình, có thể cải thiện để text nổi bật hơn.' },
-                            { element: 'Bố cục', description: 'Đối tượng chính bên phải, text bên trái - Bố cục A/B cổ điển.' },
-                            { element: 'Keyword chính', description: 'AI, HACKS, NEED' },
+                            { element: 'Tone màu', description: 'Phụ thuộc vào ảnh (ví dụ: Xanh dương, Trắng).' },
+                            { element: 'Cảm xúc', description: 'Phụ thuộc vào ảnh (ví dụ: Trung tính).' },
+                            { element: 'Độ tương phản', description: 'Trung bình, có thể cải thiện.' },
+                            { element: 'Bố cục', description: 'Đối tượng chính bên phải, text bên trái.' },
+                            { element: 'Keywords chính', description: 'AI, HACKS, NEED' },
                         ]
-                    };
-                    
-                    const mockSuggestions = {
-                        titles: [
-                            "Cách [Chuyên Gia] Sử Dụng AI Để [Đạt Kết Quả] Nhanh Gấp 10 Lần",
-                            "Tại Sao 99% Người Dùng AI Vẫn Thất Bại? (Và Cách Sửa)",
-                            "Tôi Đã Thử 5 AI Hacks Giúp Tiết Kiệm 20 Giờ/Tuần - Đây là kết quả!",
-                        ],
-                        thumbnailTexts: [ "AI HACKS 2025", "STOP WASTING TIME", "THE UNFAIR WAY", "AI THAY ĐỔI TẤT CẢ" ],
-                        style: "Chủ đề Giáo dục / AI / Hướng dẫn → Sử dụng nền trắng hoặc xanh lam nhạt, text màu đen hoặc xanh đậm để tối ưu độ tương phản. Biểu cảm nhân vật nên thân thiện, tự tin và nhìn thẳng vào người xem.",
-                        prompt: "A confident young Vietnamese man pointing at a glowing AI brain logo, bright and clean background, modern tech office setting, cinematic soft lighting, shot on Sony A7S III"
                     };
 
                     setAnalysisResult(mockAnalysis);
-                    setSuggestions(mockSuggestions);
+                    setSuggestions(dynamicSuggestions);
                     setIsLoading(false);
                 }, 2000);
             }, [image, title]);
@@ -259,7 +312,7 @@
                         </header>
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                            {/* --- CỘT TRÁI: INPUT --- */}
+                            {/* --- LEFT COLUMN: INPUT --- */}
                             <div className="bg-slate-800/50 p-6 md:p-8 rounded-2xl border border-slate-700 backdrop-blur-sm self-start">
                                 <h2 className="text-2xl font-bold mb-2">Bước 1: Nhập thông tin</h2>
                                 <p className="text-slate-400 mb-6">Tải lên thumbnail và tiêu đề video hiện tại của bạn.</p>
@@ -333,7 +386,7 @@
                                 </div>
                             </div>
                             
-                            {/* --- CỘT PHẢI: OUTPUT --- */}
+                            {/* --- RIGHT COLUMN: OUTPUT --- */}
                             <div className="min-h-[400px]">
                                 {isLoading && (
                                     <div className="flex flex-col items-center justify-center h-full bg-slate-800/50 p-8 rounded-2xl border border-dashed border-slate-700">
